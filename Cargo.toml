@@ -1,0 +1,29 @@
+[package]
+name = "ubjson"
+description = "UBJSON parser"
+documentation = "https://docs.rs/ubjson"
+homepage = "https://github.com/OtaK/ubjson"
+include = [
+    "**/*.rs",
+    "Cargo.toml",
+]
+keywords = [
+    "ubjson",
+    "ubj",
+    "nom",
+    "serde"
+]
+license = "MIT/Apache-2.0"
+repository = "https://github.com/OtaK/ubjson"
+version = "0.1.0"
+authors = ["Mathieu Amiot <amiot.mathieu@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+nom = "6.0"
+
+[features]
+default = []
+
+[dev-dependencies]
+criterion = "0.3"

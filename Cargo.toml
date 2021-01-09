@@ -21,9 +21,11 @@ edition = "2018"
 
 [dependencies]
 nom = "6.0"
+num_enum = "0.5.1"
 
 [features]
 default = []
+spec2 = []
 
 [dev-dependencies]
 criterion = "0.3"

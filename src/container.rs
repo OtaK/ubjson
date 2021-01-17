@@ -1,13 +1,12 @@
-use std::collections::HashMap;
+use std::{borrow::Cow, collections::HashMap, convert::TryInto};
 
-use crate::Marker;
+use crate::UbjsonError;
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Container {
+pub enum Container<'a> {
     Null,
     Noop,
-    True,
-    False,
+    Boolean(bool),
     Int8(i8),
     Uint8(u8),
     Int16(i16),
@@ -15,34 +14,78 @@ pub enum Container {
     Int64(i64),
     Float32(f32),
     Float64(f64),
-    HighPrecisionNumber(String),
+    HighPrecisionNumber(Cow<'a, str>),
     Char(char),
-    String(String),
-    Array(Vec<Container>),
-    Object(HashMap<String, Container>),
+    String(Cow<'a, str>),
+    Array(Vec<Container<'a>>),
+    Object(HashMap<Cow<'a, str>, Container<'a>>),
 }
 
-impl Container {
-    pub fn parse_from_marker(marker: Marker, i: &[u8]) -> nom::IResult<&[u8], Self> {
-        match marker {
-            Marker::Null => Ok((i, Self::Null)),
-            Marker::Noop => Ok((i, Self::Noop)),
-            Marker::True => Ok((i, Self::True)),
-            Marker::False => Ok((i, Self::False)),
-            Marker::Int8 => nom::combinator::map(nom::number::streaming::be_i8, |n| Self::Int8(n))(i),
-            Marker::Uint8 => nom::combinator::map(nom::number::streaming::be_u8, |n| Self::Uint8(n))(i),
-            Marker::Int16 => nom::combinator::map(nom::number::streaming::be_i16, |n| Self::Int16(n))(i),
-            Marker::Int32 => nom::combinator::map(nom::number::streaming::be_i32, |n| Self::Int32(n))(i),
-            Marker::Int64 => nom::combinator::map(nom::number::streaming::be_i64, |n| Self::Int64(n))(i),
-            Marker::Float32 => nom::combinator::map(nom::number::streaming::be_f32, |n| Self::Float32(n))(i),
-            Marker::Float64 => nom::combinator::map(nom::number::streaming::be_f64, |n| Self::Float64(n))(i),
-            Marker::HighPrecisionNumber => todo!(),
-            Marker::Char => nom::combinator::map(nom::number::streaming::be_u8, |n| Self::Char(n as char))(i),
-            Marker::String => todo!(),
-            Marker::ArrayStart => todo!(),
-            Marker::ArrayEnd => todo!(),
-            Marker::ObjectStart => todo!(),
-            Marker::ObjectEnd => todo!(),
+impl<'a> TryInto<String> for Container<'a> {
+    type Error = UbjsonError<'a>;
+
+    fn try_into(self) -> Result<String, Self::Error> {
+        if let Self::String(value) = self {
+            Ok(value.into())
+        } else {
+            Err(UbjsonError::ConversionFailed {
+                expected: Self::String("any".into()),
+                actual: self
+            })
+        }
+    }
+}
+
+impl<'a> TryInto<bool> for Container<'a> {
+    type Error = UbjsonError<'a>;
+
+    fn try_into(self) -> Result<bool, Self::Error> {
+        if let Self::Boolean(value) = self {
+            Ok(value)
+        } else {
+            Err(UbjsonError::ConversionFailed {
+                expected: Self::Boolean(true),
+                actual: self
+            })
+        }
+    }
+}
+
+// impl<T> std::convert::TryInto<Option<T>> for Container where T: std::convert::TryFrom<Container> {
+//     type Error = crate::UbjsonError;
+
+//     fn try_into(self) -> Result<Option<T>, Self::Error> {
+//         match self {
+//             Container::Null => Ok(None),
+//             Container::Noop => Ok(None),
+//             _ => Ok(Some(T::try_from(self)?)),
+//         }
+//     }
+// }
+
+impl<'a> TryInto<i8> for Container<'a> {
+    type Error = crate::UbjsonError<'a>;
+    fn try_into(self) -> Result<i8, Self::Error> {
+        match self {
+            Self::Int8(value) => Ok(value),
+            _ => Err(crate::UbjsonError::ConversionFailed {
+                expected: Container::Int8(0),
+                actual: self
+            })
+        }
+    }
+}
+
+impl<'a> TryInto<usize> for Container<'a> {
+    type Error = crate::UbjsonError<'a>;
+    fn try_into(self) -> Result<usize, Self::Error> {
+        match self {
+            Self::Uint8(value) => Ok(value as usize),
+            Self::Int8(value) => Ok(value.try_into()?),
+            Self::Int16(value) => Ok(value.try_into()?),
+            Self::Int32(value) => Ok(value.try_into()?),
+            Self::Int64(value) => Ok(value.try_into()?),
+            _ => Err(crate::UbjsonError::LengthParseError)
         }
     }
 }

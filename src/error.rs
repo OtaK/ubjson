@@ -1,5 +1,5 @@
 use nom::error::{ParseError, FromExternalError};
-use crate::{Container, Marker};
+use crate::{Container, Marker, UbjsonSerdeError};
 
 #[derive(Debug, thiserror::Error)]
 pub enum UbjsonError<'a> {
@@ -19,12 +19,17 @@ pub enum UbjsonError<'a> {
     LengthParseError,
     #[error(transparent)]
     Utf8Error(#[from] std::str::Utf8Error),
+    #[error("Not enough data to parse")]
+    Incomplete,
     #[error("{0:?}")]
     ParseError(nom::error::VerboseError<&'a [u8]>),
     #[error(transparent)]
     NumericConversionError(#[from] std::num::TryFromIntError),
     #[error(transparent)]
     MarkerEnumConversionError(#[from] num_enum::TryFromPrimitiveError<Marker>),
+    #[cfg(feature = "serde")]
+    #[error(transparent)]
+    SerdeError(#[from] UbjsonSerdeError),
     #[error(transparent)]
     Other(#[from] anyhow::Error),
 }
@@ -47,5 +52,29 @@ impl<I: std::fmt::Debug, E: std::error::Error + Send + Sync + 'static> FromExter
         e.into()
     }
 }
+
+
+impl serde::ser::Error for UbjsonError<'_> {
+    fn custom<T>(msg: T) -> Self where T: std::fmt::Display {
+        Self::SerdeError(UbjsonSerdeError::SerdeMessage(msg.to_string()))
+    }
+}
+
+impl serde::de::Error for UbjsonError<'_> {
+    fn custom<T>(msg: T) -> Self where T: std::fmt::Display {
+        Self::SerdeError(UbjsonSerdeError::SerdeMessage(msg.to_string()))
+    }
+}
+
+impl<'a> From<nom::Err<UbjsonError<'a>>> for UbjsonError<'a> {
+    fn from(e: nom::Err<UbjsonError<'a>>) -> Self {
+        match e {
+            nom::Err::Incomplete(_) => UbjsonError::Incomplete,
+            nom::Err::Error(e) => e,
+            nom::Err::Failure(e) => e,
+        }
+    }
+}
+
 
 pub type UbjsonResult<'a, T> = Result<T, UbjsonError<'a>>;

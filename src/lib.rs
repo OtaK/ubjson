@@ -10,6 +10,11 @@ pub use container::*;
 mod values;
 pub use crate::values::*;
 
+#[cfg(feature = "serde")]
+mod serde;
+#[cfg(feature = "serde")]
+pub use crate::serde::*;
+
 pub const MIME_TYPE: &str = "application/ubjson";
 pub const FILE_EXT: &str = "ubj";
 

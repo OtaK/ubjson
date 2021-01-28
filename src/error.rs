@@ -1,5 +1,7 @@
 use nom::error::{ParseError, FromExternalError};
-use crate::{Container, Marker, UbjsonSerdeError};
+use crate::{Container, Marker};
+#[cfg(feature = "serde")]
+use crate::UbjsonSerdeError;
 
 #[derive(Debug, thiserror::Error)]
 pub enum UbjsonError<'a> {
@@ -53,13 +55,13 @@ impl<I: std::fmt::Debug, E: std::error::Error + Send + Sync + 'static> FromExter
     }
 }
 
-
+#[cfg(feature = "serde")]
 impl serde::ser::Error for UbjsonError<'_> {
     fn custom<T>(msg: T) -> Self where T: std::fmt::Display {
         Self::SerdeError(UbjsonSerdeError::SerdeMessage(msg.to_string()))
     }
 }
-
+#[cfg(feature = "serde")]
 impl serde::de::Error for UbjsonError<'_> {
     fn custom<T>(msg: T) -> Self where T: std::fmt::Display {
         Self::SerdeError(UbjsonSerdeError::SerdeMessage(msg.to_string()))
@@ -75,6 +77,5 @@ impl<'a> From<nom::Err<UbjsonError<'a>>> for UbjsonError<'a> {
         }
     }
 }
-
 
 pub type UbjsonResult<'a, T> = Result<T, UbjsonError<'a>>;

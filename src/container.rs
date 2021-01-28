@@ -89,3 +89,12 @@ impl<'a> TryInto<usize> for Container<'a> {
         }
     }
 }
+
+#[cfg(feature = "serde")]
+impl<'a, 'de: 'a> serde::de::IntoDeserializer<'de> for Container<'a> {
+    type Deserializer = crate::serde::de::Deserializer<'de>;
+
+    fn into_deserializer(self) -> Self::Deserializer {
+        todo!()
+    }
+}

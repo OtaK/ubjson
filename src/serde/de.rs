@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use de::value::SeqDeserializer;
 use serde::{Deserialize, de};
 
 use crate::{Container, UbjsonError, UbjsonResult, UbjsonSerdeError};
@@ -53,10 +54,13 @@ impl<'de, 'a: 'de> de::Deserializer<'de> for &'a mut Deserializer<'de> {
             crate::Container::HighPrecisionNumber(v) => visitor.visit_string(v.to_string()),
             crate::Container::Char(v) => visitor.visit_char(v),
             crate::Container::String(v) => visitor.visit_string(v.to_string()),
-            crate::Container::Array(v) => visitor.visit_seq(ContainerSequence {
-                de: self,
-                items: v.into_iter()
-            }),
+            crate::Container::Array(v) => {
+                visitor.visit_seq(SeqDeserializer::new(v.into_iter()))
+            },
+            // crate::Container::Array(v) => visitor.visit_seq(ContainerSequence {
+            //     de: self,
+            //     items: v.into_iter()
+            // }),
             crate::Container::Object(v) => visitor.visit_map(ContainerMap {
                 de: self,
                 items: v.into_iter(),

@@ -18,11 +18,13 @@ pub trait Parsable<'a>: Sized {
 }
 
 
+/// Main entry point. Will parse one whole UBJSON value, whatever it is
 #[inline(always)]
 pub fn parse_one<'a>(i: &'a [u8]) -> nom::IResult<&'a [u8], Container, UbjsonError> {
     Marker::parse(i).and_then(|(i, marker)| marker.parse_to_container(i))
 }
 
+/// Utility to parse length and convert it to a `usize`
 #[inline(always)]
 fn parse_length(i: &[u8]) -> nom::IResult<&[u8], usize, UbjsonError> {
     use std::convert::TryInto as _;

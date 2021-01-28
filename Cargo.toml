@@ -3,6 +3,7 @@ name = "ubjson"
 description = "UBJSON parser"
 documentation = "https://docs.rs/ubjson"
 homepage = "https://github.com/OtaK/ubjson"
+readme = "README.md"
 include = [
     "**/*.rs",
     "Cargo.toml",
@@ -10,17 +11,20 @@ include = [
 keywords = [
     "ubjson",
     "ubj",
-    "nom",
-    "serde"
+    "nom"
 ]
-license = "MIT/Apache-2.0"
+categories = [
+    "parser-implementations",
+    "encoding"
+]
+license = "MIT OR Apache-2.0"
 repository = "https://github.com/OtaK/ubjson"
 version = "0.1.0"
 authors = ["Mathieu Amiot <amiot.mathieu@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-nom = "6.0"
+nom = "6.1"
 num_enum = "0.5"
 thiserror = "1.0"
 anyhow = "1.0"

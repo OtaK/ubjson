@@ -2,6 +2,7 @@ use std::{borrow::Cow, collections::HashMap, convert::TryInto};
 
 use crate::UbjsonError;
 
+/// Container for UBJSON values
 #[derive(Debug, Clone, PartialEq)]
 pub enum Container<'a> {
     Null,

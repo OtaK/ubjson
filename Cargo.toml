@@ -19,12 +19,12 @@ categories = [
 ]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/OtaK/ubjson"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Mathieu Amiot <amiot.mathieu@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-nom = "6.1"
+nom = "7"
 num_enum = "0.5"
 thiserror = "1.0"
 anyhow = "1.0"
